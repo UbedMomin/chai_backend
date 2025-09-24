@@ -1,13 +1,11 @@
 // require("dotenv").config({ path: "./env" });
 import dotenv from "dotenv";
 import connectDB from "./db/db.js";
-import express from "express"; // ✅ Added import for express
+import app from "./app.js"; // use the app with routes & middleware
 
 dotenv.config({
   path: "./.env",
 });
-
-const app = express(); // ✅ Defined app before using app.listen
 
 connectDB()
   .then(() => {
@@ -40,4 +38,3 @@ async () => {
   }
 };
 */
- 
