@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt ";
-import { useCallback } from "react";
+import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
   {
@@ -9,7 +8,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      lowecase: true,
+      lowercase: true,   // ✅ fixed
       trim: true,
       index: true,
     },
@@ -17,7 +16,7 @@ const userSchema = new Schema(
       type: String,
       required: true,
       unique: true,
-      lowecase: true,
+      lowercase: true,   // ✅ fixed
       trim: true,
     },
     fullName: {
@@ -27,11 +26,11 @@ const userSchema = new Schema(
       index: true,
     },
     avatar: {
-      typr: String, // cloudinary url
-      required: true,
+      type: String,      // ✅ fixed
+      required: true,    // cloudinary url
     },
     coverImage: {
-      type: String, // cloudinary url
+      type: String,      // cloudinary url
     },
     watchHistory: [
       {
@@ -52,16 +51,19 @@ const userSchema = new Schema(
   }
 );
 
+// 🔒 Hash password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
+// 🔑 Compare password
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
+// 🔑 Generate Access Token
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -76,12 +78,14 @@ userSchema.methods.generateAccessToken = function () {
     }
   );
 };
+
+// 🔑 Generate Refresh Token
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,
     },
-    process.env.ACCESS_TOKEN_SECRET,
+    process.env.REFRESH_TOKEN_SECRET,   // ✅ should be refresh token secret
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
     }
