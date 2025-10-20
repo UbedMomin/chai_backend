@@ -1,11 +1,38 @@
-// require("dotenv").config({ path: "./env" });
 import dotenv from "dotenv";
-import connectDB from "./db/db.js";
-import app from "./app.js"; // use the app with routes & middleware
+import path from "path";
+import { fileURLToPath } from "url";
 
+// Get current directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+console.log("🔍 Current directory:", process.cwd());
+console.log("🔍 Looking for .env file...");
+
+// Try different paths
+const envPath = path.resolve(process.cwd(), '.env');
+console.log("🔍 Expected .env path:", envPath);
+
+// Check if file exists
+import fs from "fs";
+if (fs.existsSync(envPath)) {
+  console.log("✅ .env file found!");
+} else {
+  console.log("❌ .env file NOT found at:", envPath);
+}
+
+// Load environment variables
 dotenv.config({
-  path: "./.env",
+  path: envPath
 });
+
+// Debug: Check if Cloudinary vars are loaded
+console.log("🔍 After dotenv config:");
+console.log("CLOUDINARY_CLOUD_NAME:", process.env.CLOUDINARY_CLOUD_NAME || "UNDEFINED");
+console.log("PORT:", process.env.PORT || "UNDEFINED");
+
+import connectDB from "./db/db.js";
+import app from "./app.js";
 
 connectDB()
   .then(() => {
@@ -16,25 +43,3 @@ connectDB()
   .catch((err) => {
     console.log("MONGO db connection failed !!!", err);
   });
-
-/*
-import express from "express";
-const app = express();
-
-async () => {
-  try {
-    await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`);
-    app.on("error", (error) => {
-      console.log("ERROR:", error);
-      throw error;
-    });
-
-    app.listen(process.env.PORT, () => {
-      console.log(`App is listening on PORT ${process.env.PORT}`);
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    throw err;
-  }
-};
-*/

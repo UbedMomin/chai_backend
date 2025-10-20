@@ -1,11 +1,18 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// ✅ TEMPORARY: Use hardcoded values to test
+const cloudinaryConfig = {
+  cloud_name: "dqpylldvn",
+  api_key: "148516334485458",
+  api_secret: "xNCsd1W-WV46QzzNOh0Xu9Zvl3o"
+};
+
+console.log("🔍 Using Cloudinary Config (hardcoded):", cloudinaryConfig.cloud_name);
+
+cloudinary.config(cloudinaryConfig);
+
+console.log("✅ Cloudinary configured successfully");
 
 // Upload File
 const uploadOnCloudinary = async (localFilePath, folder = "uploads") => {
@@ -14,16 +21,14 @@ const uploadOnCloudinary = async (localFilePath, folder = "uploads") => {
 
     const result = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
-      folder, // ✅ saves inside specific folder
+      folder,
     });
 
-    fs.unlinkSync(localFilePath); // delete after upload
+    fs.unlinkSync(localFilePath);
     console.log("✅ Uploaded:", result.secure_url);
-
     return result;
   } catch (error) {
     console.error("❌ Cloudinary Upload Error:", error.message);
-
     if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
     return null;
   }
