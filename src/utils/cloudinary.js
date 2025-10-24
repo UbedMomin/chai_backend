@@ -24,12 +24,21 @@ const uploadOnCloudinary = async (localFilePath, folder = "uploads") => {
       folder,
     });
 
-    fs.unlinkSync(localFilePath);
-    console.log("✅ Uploaded:", result.secure_url);
+    // FIX: Remove duplicate fs.unlinkSync and check if file exists
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+      console.log("✅ Uploaded and local file deleted:", result.secure_url);
+    } else {
+      console.log("✅ Uploaded (local file already removed):", result.secure_url);
+    }
+    
     return result;
   } catch (error) {
     console.error("❌ Cloudinary Upload Error:", error.message);
-    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+    // FIX: Only try to delete if file exists
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
     return null;
   }
 };
