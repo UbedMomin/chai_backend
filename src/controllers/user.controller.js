@@ -11,7 +11,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // ✅ FIXED: Corrected the field check logic
   if (
     [fullName, email, username, password].some(
-      (field) => !field || field.trim() === ""
+      (field) => !field || field.trim() === "" 
     )
   ) {
     throw new ApiError(400, "All fields are required");
@@ -30,7 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
   const coverImageLocalPath = req.files?.coverImage?.[0]?.path; // Short-circuit way
 
-// let coverImageLocalPath;  // Standard way 
+// let coverImageLocalPath;  // Standard way    
 // if(req.files && Array.isArray(req.files.coverImage)
 // && req.files.coverImage.length > 0 ){
 //   coverImageLocalPath = req.files.coverImage[0].path;
@@ -73,3 +73,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 export { registerUser };
+
+
+//$ sign these are operators of mongodb
