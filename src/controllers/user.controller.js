@@ -11,7 +11,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // ✅ FIXED: Corrected the field check logic
   if (
     [fullName, email, username, password].some(
-      (field) => !field || field.trim() === "" 
+      (field) => !field || field.trim() === ""
     )
   ) {
     throw new ApiError(400, "All fields are required");
@@ -25,16 +25,22 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with email or username already exists");
   }
 
+  const isPasswordValid = await user.isPasswordCorrect(password);
+ 
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid User Credentials");
+  }
+
   // console.log(req.files);
   // ✅ FIXED: Corrected typo "avatarLoaclPath" to "avatarLocalPath"
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
   const coverImageLocalPath = req.files?.coverImage?.[0]?.path; // Short-circuit way
 
-// let coverImageLocalPath;  // Standard way    
-// if(req.files && Array.isArray(req.files.coverImage)
-// && req.files.coverImage.length > 0 ){
-//   coverImageLocalPath = req.files.coverImage[0].path;
-// } 
+  // let coverImageLocalPath;  // Standard way
+  // if(req.files && Array.isArray(req.files.coverImage)
+  // && req.files.coverImage.length > 0 ){
+  //   coverImageLocalPath = req.files.coverImage[0].path;
+  // }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
@@ -73,6 +79,5 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 export { registerUser };
-
 
 //$ sign these are operators of mongodb
