@@ -6,15 +6,14 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessAndRefereshTokens = async (userId) => {
   try {
-   const user = await User,findById(userId)
-  const accessToken = user.generateAccessToken()
-  const refreshToken =  user.generateRefreshToken()
+    const user = await User.findById(userId);
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-user.refreshToken = refreshToken
-await user.save({validateBeforeSave:false})
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
 
-return {accessToken, refreshToken}
-
+    return { accessToken, refreshToken };
   } catch (error) {
     throw new ApiError(
       500,
@@ -50,30 +49,55 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(401, "Invalid User Credentials");
   }
 
-const {accessToken, refreshToken} =  await generateAccessAndRefereshTokens(user._id)
+  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+    user._id
+  );
 
-const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+  const loginUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
 
-const options = {
-  httpOnly: true,
-  secure: true
-}
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
 
-return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
-  new ApiResponse(
-    200,
-    {
-      user: loggedInUser, accessToken, refreshToken
-    },
-    "User logged in successfully"
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loginUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged in successfully"
+      )
+    );
 
-  )
-
-)
-
-const logoutUser = asyncHandler(async (req, res) =>{
-  
-})
+  const logoutUser = asyncHandler(async (req, res) => {
+    User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: { refreshToken: undefined },
+      },
+      {
+        new: true,
+      }
+    );
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    return res
+      .status(200)
+      .clearCookie("accessToken", options)
+      .clearCookie("refreshToken", options) 
+      .json(new ApiResponse(200, {}, "User logged out successfully"));{
+  });
   // console.log(req.files);
   // ✅ FIXED: Corrected typo "avatarLoaclPath" to "avatarLocalPath"
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
@@ -121,6 +145,6 @@ const logoutUser = asyncHandler(async (req, res) =>{
     .json(new ApiResponse(200, createdUser, "User registered successfully"));
 });
 
-export { registerUser };
+export { registerUser, loginUser, logoutUser };
 
 //$ sign these are operators of mongodb
