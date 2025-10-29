@@ -22,11 +22,12 @@ const generateAccessAndRefereshTokens = async (userId) => {
   }
 };
 
+// ✅ FIXED: registerUser should only handle registration, not login/logout
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, username, password } = req.body;
   console.log("email", email);
 
-  // ✅ FIXED: Corrected the field check logic
+  // ✅ FIXED: Corrected field check logic
   if (
     [fullName, email, username, password].some(
       (field) => !field || field.trim() === ""
@@ -43,71 +44,12 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User with email or username already exists");
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password);
+  // ✅ FIXED: 'user' is not defined yet, so removed password check here
+  // The password validation belongs to loginUser, not registerUser
 
-  if (!isPasswordValid) {
-    throw new ApiError(401, "Invalid User Credentials");
-  }
-
-  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
-    user._id
-  );
-
-  const loginUser = await User.findById(user._id).select(
-    "-password -refreshToken"
-  );
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: loginUser,
-          accessToken,
-          refreshToken,
-        },
-        "User logged in successfully"
-      )
-    );
-
-  const logoutUser = asyncHandler(async (req, res) => {
-    User.findByIdAndUpdate(
-      req.user._id,
-      {
-        $set: { refreshToken: undefined },
-      },
-      {
-        new: true,
-      }
-    );
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
-    return res
-      .status(200)
-      .clearCookie("accessToken", options)
-      .clearCookie("refreshToken", options) 
-      .json(new ApiResponse(200, {}, "User logged out successfully"));{
-  });
-  // console.log(req.files);
   // ✅ FIXED: Corrected typo "avatarLoaclPath" to "avatarLocalPath"
   const avatarLocalPath = req.files?.avatar?.[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage?.[0]?.path; // Short-circuit way
-
-  // let coverImageLocalPath;  // Standard way
-  // if(req.files && Array.isArray(req.files.coverImage)
-  // && req.files.coverImage.length > 0 ){
-  //   coverImageLocalPath = req.files.coverImage[0].path;
-  // }
+  const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
@@ -145,6 +87,76 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User registered successfully"));
 });
 
+// ✅ FIXED: Added proper loginUser function (was missing before)
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    throw new ApiError(400, "Email and password are required");
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid credentials");
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+    user._id
+  );
+
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User logged in successfully"
+      )
+    );
+});
+
+// ✅ FIXED: Properly defined logoutUser outside of registerUser
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: { refreshToken: undefined },
+    },
+    { new: true }
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
+});
+
 export { registerUser, loginUser, logoutUser };
 
-//$ sign these are operators of mongodb
+// $ sign these are operators of mongodb
