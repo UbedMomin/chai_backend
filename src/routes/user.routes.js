@@ -27,4 +27,5 @@ router.route("/logout").post(verifyJWT, logoutUser);
 export default router;
 
 
-//fix the login route in postman request 
+//fix the login route in postman request check it tommrow and fix it 
+
