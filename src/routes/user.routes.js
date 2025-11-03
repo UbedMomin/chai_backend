@@ -3,6 +3,7 @@ import {
   registerUser,
   loginUser,
   logoutUser,
+  refreshAccessToken,
 } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"; // ✅ fixed import
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -23,9 +24,8 @@ router.route("/login").post(loginUser);
 
 //secured routes
 router.route("/logout").post(verifyJWT, logoutUser);
+router.route("/refresh-token").post(refreshAccessToken); // To be implemented
 
 export default router;
 
-
-//fix the login route in postman request check it tommrow and fix it 
-
+//fix the login route in postman request check it tommrow and fix it
