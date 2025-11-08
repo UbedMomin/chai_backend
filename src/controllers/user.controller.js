@@ -315,3 +315,4 @@ export {
 // $ sign these are operators of mongodb
 // learned about the subsciption schema lect 19
 // lect 20 learn about aggregation pipelines through mongoose
+// another day without coding :( but tommorow is there :)
