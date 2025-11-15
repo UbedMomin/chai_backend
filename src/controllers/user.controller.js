@@ -88,8 +88,9 @@ const loginUser = asyncHandler(async (req, res) => {
   const isPasswordValid = await user.isPasswordCorrect(password);
   if (!isPasswordValid) throw new ApiError(401, "Invalid credentials");
 
-  const { accessToken, refreshToken } =
-    await generateAccessAndRefereshTokens(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+    user._id
+  );
 
   const loggedInUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -121,7 +122,7 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(
     req.user._id,
-    { $set: { refreshToken: undefined } },
+    { $unset: { refreshToken: 1  } }, // this remove the field from the document
     { new: true }
   );
 
@@ -164,8 +165,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       secure: true,
     };
 
-    const { accessToken, refreshToken } =
-      await generateAccessAndRefereshTokens(user._id);
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+      user._id
+    );
 
     return res
       .status(200)
@@ -371,13 +373,15 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     },
   ]);
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      user[0].watchHistory,
-      "Watch History fetched successfully"
-    )
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "Watch History fetched successfully"
+      )
+    );
 });
 
 export {
@@ -393,7 +397,6 @@ export {
   getUserChannelProfile,
   getWatchHistory,
 };
-
 
 // $ sign these are operators of mongodb
 // learned about the subsciption schema lect 19
